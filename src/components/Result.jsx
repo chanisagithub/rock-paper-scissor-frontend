@@ -1,6 +1,11 @@
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import { Separator } from './ui/separator';
 
-const Result = ({ winner, onRematch, currentPlayer, opponent, gameState }) => {
+const Result = ({ winner, onRematch, currentPlayer, opponent, gameState, onReturnToMenu }) => {
   // Determine if current player won, lost, or tied
   const istie = !winner || winner === null;
   const currentPlayerWon = !istie && winner && currentPlayer && (winner === currentPlayer.sessionId || 
@@ -17,118 +22,152 @@ const Result = ({ winner, onRematch, currentPlayer, opponent, gameState }) => {
 
   const winnerInfo = getWinnerInfo();
 
+  const getResultColor = () => {
+    if (istie) return 'border-gray-300 bg-gray-50';
+    return currentPlayerWon ? 'border-gray-400 bg-white' : 'border-gray-300 bg-gray-50';
+  };
+
+  const getResultIcon = () => {
+    if (istie) return '🤝';
+    return currentPlayerWon ? '🎉' : '😔';
+  };
+
+  const getResultTitle = () => {
+    if (istie) return 'IT\'S A TIE!';
+    return currentPlayerWon ? 'YOU WIN!' : 'YOU LOSE';
+  };
+
+  const getResultMessage = () => {
+    if (istie) return 'Great game! Both players played equally well!';
+    return winnerInfo ? `${winnerInfo.name} is the champion!` : '';
+  };
+
   return (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
-      <h2 style={{ fontSize: '32px', marginBottom: '30px' }}>🎮 Game Over! 🎮</h2>
-      
-      {/* Winner Announcement */}
-      <div style={{ 
-        backgroundColor: istie ? '#FFC107' : (currentPlayerWon ? '#4CAF50' : '#FF5722'), 
-        color: istie ? '#333' : 'white', 
-        padding: '20px', 
-        borderRadius: '10px', 
-        marginBottom: '30px' 
-      }}>
-        <h3 style={{ margin: '0 0 10px 0', fontSize: '24px' }}>
-          {istie ? '🤝 IT\'S A TIE! 🤝' : (currentPlayerWon ? '🎉 YOU WIN! 🎉' : '😔 YOU LOSE 😔')}
-        </h3>
-        {istie ? (
-          <p style={{ margin: '0', fontSize: '18px' }}>
-            Great game! Both players played equally well!
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Game Over Header */}
+      <Card className={`${getResultColor()} border-2 shadow-lg`}>
+        <CardHeader className="text-center bg-gradient-to-b from-gray-50 to-white rounded-t-lg">
+          <div className="text-6xl mb-4">{getResultIcon()}</div>
+          <CardTitle className="text-3xl font-bold text-black mb-2">
+            Game Over!
+          </CardTitle>
+          <div className={`text-2xl font-bold mb-4 ${
+            istie ? 'text-gray-600' : (currentPlayerWon ? 'text-black' : 'text-gray-600')
+          }`}>
+            {getResultTitle()}
+          </div>
+          <p className="text-lg text-gray-600">
+            {getResultMessage()}
           </p>
-        ) : winnerInfo && (
-          <p style={{ margin: '0', fontSize: '18px' }}>
-            {winnerInfo.name} is the champion!
-          </p>
-        )}
-      </div>
+        </CardHeader>
+      </Card>
 
-      {/* Final Scores */}
+      {/* Final Score Display */}
       {gameState && (
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-around', 
-          marginBottom: '30px',
-          backgroundColor: '#f5f5f5',
-          padding: '20px',
-          borderRadius: '10px'
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <h4 style={{ color: '#2196F3', margin: '0 0 10px 0' }}>YOU</h4>
-            {currentPlayer && (
-              <>
-                <img 
-                  src={currentPlayer.nftImageUrl} 
-                  alt="Your NFT" 
-                  style={{ 
-                    width: '80px', 
-                    height: '80px', 
-                    borderRadius: '50%', 
-                    border: istie ? '4px solid #FFC107' : (currentPlayerWon ? '4px solid #4CAF50' : '4px solid #ccc')
-                  }}
-                />
-                <p style={{ margin: '10px 0 5px 0', fontWeight: 'bold' }}>{currentPlayer.name}</p>
-                <p style={{ margin: '0', fontSize: '24px', fontWeight: 'bold' }}>
-                  {gameState.player1Score || 0} wins
-                </p>
-              </>
-            )}
-          </div>
-          
-          <div style={{ alignSelf: 'center', fontSize: '32px' }}>⚔️</div>
-          
-          <div style={{ textAlign: 'center' }}>
-            <h4 style={{ color: '#FF5722', margin: '0 0 10px 0' }}>OPPONENT</h4>
-            {opponent && (
-              <>
-                <img 
-                  src={opponent.nftImageUrl} 
-                  alt="Opponent NFT" 
-                  style={{ 
-                    width: '80px', 
-                    height: '80px', 
-                    borderRadius: '50%', 
-                    border: istie ? '4px solid #FFC107' : (!currentPlayerWon ? '4px solid #4CAF50' : '4px solid #ccc')
-                  }}
-                />
-                <p style={{ margin: '10px 0 5px 0', fontWeight: 'bold' }}>{opponent.name}</p>
-                <p style={{ margin: '0', fontSize: '24px', fontWeight: 'bold' }}>
-                  {gameState.player2Score || 0} wins
-                </p>
-              </>
-            )}
-          </div>
-        </div>
+        <Card className="bg-white border-gray-200 shadow-lg">
+          <CardHeader className="text-center bg-gray-50 rounded-t-lg">
+            <CardTitle className="text-xl text-black">Final Score</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Current Player Result */}
+              <Card className={`border-2 shadow-md ${
+                istie ? 'border-gray-300' : (currentPlayerWon ? 'border-black' : 'border-gray-300')
+              }`}>
+                <CardContent className="text-center pt-6 space-y-4">
+                  <div className="text-lg font-semibold text-black">YOU</div>
+                  {currentPlayer && (
+                    <>
+                      <Avatar className={`w-24 h-24 mx-auto border-4 ${
+                        istie ? 'border-gray-400' : (currentPlayerWon ? 'border-black' : 'border-gray-300')
+                      }`}>
+                        <AvatarImage src={currentPlayer.nftImageUrl} alt="Your Avatar" />
+                        <AvatarFallback className="bg-gray-200 text-black text-xl font-bold">
+                          {currentPlayer.name?.charAt(0)?.toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-bold text-black">{currentPlayer.name}</p>
+                        <Badge className={`text-xl px-4 py-2 mt-2 ${
+                          istie ? 'bg-gray-600' : (currentPlayerWon ? 'bg-black' : 'bg-gray-500')
+                        } text-white`}>
+                          {gameState.player1Score || 0} wins
+                        </Badge>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* VS Section */}
+              <Card className="border-gray-200 shadow-md bg-white">
+                <CardContent className="flex flex-col items-center justify-center h-full pt-6">
+                  <div className="text-4xl mb-4 text-gray-600">⚔️</div>
+                  <Badge variant="outline" className="text-lg px-4 py-2 border-gray-300 text-gray-700">
+                    {gameState.player1Score || 0} - {gameState.player2Score || 0}
+                  </Badge>
+                  <p className="text-sm text-gray-500 mt-2 text-center">
+                    {istie ? '🤝 Perfect balance!' : ''} Best of {gameState.maxRounds || 3} rounds
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Opponent Result */}
+              <Card className={`border-2 shadow-md ${
+                istie ? 'border-gray-300' : (!currentPlayerWon ? 'border-black' : 'border-gray-300')
+              }`}>
+                <CardContent className="text-center pt-6 space-y-4">
+                  <div className="text-lg font-semibold text-black">OPPONENT</div>
+                  {opponent && (
+                    <>
+                      <Avatar className={`w-24 h-24 mx-auto border-4 ${
+                        istie ? 'border-gray-400' : (!currentPlayerWon ? 'border-black' : 'border-gray-300')
+                      }`}>
+                        <AvatarImage src={opponent.nftImageUrl} alt="Opponent Avatar" />
+                        <AvatarFallback className="bg-gray-200 text-black text-xl font-bold">
+                          {opponent.name?.charAt(0)?.toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-bold text-black">{opponent.name}</p>
+                        <Badge className={`text-xl px-4 py-2 mt-2 ${
+                          istie ? 'bg-gray-600' : (!currentPlayerWon ? 'bg-black' : 'bg-gray-500')
+                        } text-white`}>
+                          {gameState.player2Score || 0} wins
+                        </Badge>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Final Score Summary */}
-      {gameState && (
-        <div style={{ marginBottom: '30px' }}>
-          <h3>Final Score: {gameState.player1Score || 0} - {gameState.player2Score || 0}</h3>
-          <p style={{ color: '#666' }}>
-            {istie ? '🤝 Perfect balance! ' : ''}Best of {gameState.maxRounds || 3} rounds completed
-          </p>
-        </div>
-      )}
-
-      {/* Play Again Button */}
-      <button 
-        onClick={onRematch}
-        style={{
-          padding: '15px 30px',
-          fontSize: '18px',
-          backgroundColor: '#2196F3',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          fontWeight: 'bold'
-        }}
-        onMouseOver={(e) => e.target.style.backgroundColor = '#1976D2'}
-        onMouseOut={(e) => e.target.style.backgroundColor = '#2196F3'}
-      >
-        🔄 Play Again
-      </button>
+      {/* Action Buttons */}
+      <Card className="bg-white border-gray-200 shadow-lg">
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button 
+              onClick={onRematch}
+              className="bg-black hover:bg-gray-800 text-white font-semibold px-8 py-3 text-lg shadow-lg transition-all duration-200"
+              size="lg"
+            >
+              🔄 Play Again
+            </Button>
+            
+            <Button 
+              onClick={onReturnToMenu}
+              variant="outline"
+              className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-semibold px-8 py-3 text-lg transition-all duration-200"
+              size="lg"
+            >
+              ← Return to Menu
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

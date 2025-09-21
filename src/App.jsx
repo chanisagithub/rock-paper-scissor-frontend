@@ -3,19 +3,26 @@ import * as Colyseus from 'colyseus.js'; // Import Colyseus client
 import Lobby from './components/Lobby';
 import Game from './components/Game';
 import Result from './components/Result';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
+import { Button } from './components/ui/button';
+import { Input } from './components/ui/input';
+import { Label } from './components/ui/label';
+import { Separator } from './components/ui/separator';
+import { Badge } from './components/ui/badge';
+import { Alert, AlertDescription } from './components/ui/alert';
 import './App.css';
 
-const BACKEND_API_URL = 'http://192.168.2.79:2568'; // Express API port
-const COLYSEUS_WS_URL = 'ws://192.168.2.79:2567'; // Colyseus WebSocket port
+const BACKEND_API_URL = 'http://192.168.1.7:2568'; // Express API port
+const COLYSEUS_WS_URL = 'ws://192.168.1.7:2567'; // Colyseus WebSocket port
 
 function App() {
   console.log("App component rendered.");
-  const [walletConnected, setWalletConnected] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(true); // Show menu initially
   const [gameStarted, setGameStarted] = useState(false);
   const [playerChoice, setPlayerChoice] = useState(null);
   const [opponentChoice, setOpponentChoice] = useState(null);
   const [gameResult, setGameResult] = useState(null); // { winner: 'Player1' } or { winner: null } for draw
-  const [message, setMessage] = useState('Waiting for opponent...');
+  const [message, setMessage] = useState('Welcome! Create or join a room to start playing.');
   const [room, setRoom] = useState(null); // Colyseus Room instance
   const client = useRef(null); // Colyseus Client instance
   
@@ -23,6 +30,10 @@ function App() {
   const [currentPlayer, setCurrentPlayer] = useState(null); // { name, uuid, nftImageUrl }
   const [opponent, setOpponent] = useState(null); // { name, uuid, nftImageUrl }
   const [gameState, setGameState] = useState(null); // Full game state for scores, etc.
+  
+  // Room management state
+  const [roomId, setRoomId] = useState('');
+  const [playerName, setPlayerName] = useState('');
 
   useEffect(() => {
     client.current = new Colyseus.Client(COLYSEUS_WS_URL);
@@ -33,233 +44,232 @@ function App() {
     };
   }, []);
 
-  // Placeholder for Web3 wallet connection
-  const connectWallet = async () => {
-    console.log("connectWallet function called.");
-    console.log('Connecting wallet...');
-    // In a real app, this would connect to MetaMask or similar
-    // and fetch NFT data. For now, we'll simulate success.
-    const playerUuid = `player_${Math.random().toString(36).substring(7)}`;
-    const playerName = `Guest_${Math.random().toString(36).substring(7)}`;
-    const nftImageUrl = `https://picsum.photos/seed/${playerUuid}/50/50`; // Dummy NFT image
+  // Create a new room
+  const createRoom = async () => {
+    if (!playerName.trim()) {
+      setMessage('Please enter your player name.');
+      return;
+    }
 
-    // Simulate sending NFT data to backend and getting JWT
     try {
-      console.log('Attempting to fetch from:', `${BACKEND_API_URL}/api/create-room`);
-      const response = await fetch(`${BACKEND_API_URL}/api/create-room`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          playerUuid,
-          playerName,
-          nftImageUrl,
-        }),
+      const playerUuid = `player_${Math.random().toString(36).substring(7)}`;
+      const nftImageUrl = `https://picsum.photos/seed/${playerUuid}/50/50`; // Dummy avatar
+
+      console.log('Creating room...');
+      setMessage('Creating room...');
+      
+      // Create room directly through Colyseus
+      const gameRoom = await client.current.create('drps_room', {
+        playerUuid,
+        playerName: playerName.trim(),
+        nftImageUrl
       });
-      console.log('Fetch response status:', response.status);
-      const data = await response.json();
-      console.log('Fetch response data:', data);
-      if (response.ok) {
-        setWalletConnected(true);
-        setMessage('Wallet connected. Searching for opponent...');
-        // Pass all player info and token to joinGame
-        joinGame({
-          token: data.token,
-          playerUuid,
-          playerName,
-          nftImageUrl
-        });
-        
-        // Set current player info
-        setCurrentPlayer({
-          name: playerName,
-          uuid: playerUuid,
-          nftImageUrl: nftImageUrl
-        });
-      } else {
-        setMessage(`Failed to connect: ${data.message}`);
-        console.error('Backend error response:', data);
-      }
+
+      console.log('Room created with ID:', gameRoom.roomId || gameRoom.id);
+      setRoomId(gameRoom.roomId || gameRoom.id);
+      
+      // Set current player info
+      setCurrentPlayer({
+        name: playerName.trim(),
+        uuid: playerUuid,
+        nftImageUrl: nftImageUrl
+      });
+
+      setupGameRoom(gameRoom);
+      setMenuOpen(false);
+      setMessage(`Room created! Room ID: ${gameRoom.roomId || gameRoom.id}. Waiting for opponent...`);
+
     } catch (error) {
-      console.error('Error connecting wallet or creating room:', error);
-      setMessage('Error connecting to game server. Check console for details.');
+      console.error('Error creating room:', error);
+      setMessage('Failed to create room. Please try again.');
     }
   };
 
-  // Accepts an object with token, playerUuid, playerName, nftImageUrl
-  const joinGame = async ({ token, playerUuid, playerName, nftImageUrl }) => {
+  // Join an existing room
+  const joinRoom = async () => {
+    if (!playerName.trim()) {
+      setMessage('Please enter your player name.');
+      return;
+    }
+    
+    if (!roomId.trim()) {
+      setMessage('Please enter a room ID.');
+      return;
+    }
+
     try {
-      let gameRoom;
+      const playerUuid = `player_${Math.random().toString(36).substring(7)}`;
+      const nftImageUrl = `https://picsum.photos/seed/${playerUuid}/50/50`; // Dummy avatar
 
-      // Always send all required player info and token in join/create options
-      const joinOptions = { token, playerUuid, playerName, nftImageUrl };
+      console.log('Joining room:', roomId.trim());
+      setMessage('Joining room...');
+      
+      // Join room directly through Colyseus
+      const gameRoom = await client.current.joinById(roomId.trim(), {
+        playerUuid,
+        playerName: playerName.trim(),
+        nftImageUrl
+      });
 
-      // Try different connection approaches to handle various server configurations
-      const connectionAttempts = [
-        // Attempt 1: Try with all info as direct option
-        async () => {
-          console.log('Trying with all player info and token as direct option...');
-          return await client.current.joinOrCreate('drps_room', joinOptions);
-        },
-        // Attempt 2: Try with token as playerToken (legacy)
-        async () => {
-          console.log('Trying with playerToken...');
-          return await client.current.joinOrCreate('drps_room', { playerToken: token, playerUuid, playerName, nftImageUrl });
-        },
-        // Attempt 3: Try with authorization header
-        async () => {
-          console.log('Trying with authorization header...');
-          return await client.current.joinOrCreate('drps_room', { playerUuid, playerName, nftImageUrl }, {
-            'Authorization': `Bearer ${token}`
-          });
-        },
-        // Attempt 4: Try to join existing room with all info
-        async () => {
-          console.log('Trying to join existing room with all info...');
-          return await client.current.join('drps_room', joinOptions);
-        },
-        // Attempt 5: Try create with all info
-        async () => {
-          console.log('Trying create with all info...');
-          return await client.current.create('drps_room', joinOptions);
-        }
-      ];
+      console.log('Joined room:', gameRoom.roomId || gameRoom.id);
+      
+      // Set current player info
+      setCurrentPlayer({
+        name: playerName.trim(),
+        uuid: playerUuid,
+        nftImageUrl: nftImageUrl
+      });
 
-      let lastError;
-      for (const attempt of connectionAttempts) {
-        try {
-          gameRoom = await attempt();
-          console.log('Successfully connected to room:', gameRoom.roomId || gameRoom.id);
-          break;
-        } catch (error) {
-          console.log('Connection attempt failed:', error.message);
-          lastError = error;
-          // Continue to next attempt
-        }
+      setupGameRoom(gameRoom);
+      setMenuOpen(false);
+      setMessage('Joined room! Waiting for game to start...');
+
+    } catch (error) {
+      console.error('Error joining room:', error);
+      setMessage('Failed to join room. Please check the room ID and try again.');
+    }
+  };
+
+  // Quick match - join or create any available room
+  const quickMatch = async () => {
+    if (!playerName.trim()) {
+      setMessage('Please enter your player name.');
+      return;
+    }
+
+    try {
+      const playerUuid = `player_${Math.random().toString(36).substring(7)}`;
+      const nftImageUrl = `https://picsum.photos/seed/${playerUuid}/50/50`; // Dummy avatar
+
+      console.log('Quick matching...');
+      setMessage('Finding a match...');
+      
+      // Try to join or create any available room
+      const gameRoom = await client.current.joinOrCreate('drps_room', {
+        playerUuid,
+        playerName: playerName.trim(),
+        nftImageUrl
+      });
+
+      console.log('Matched to room:', gameRoom.roomId || gameRoom.id);
+      setRoomId(gameRoom.roomId || gameRoom.id);
+      
+      // Set current player info
+      setCurrentPlayer({
+        name: playerName.trim(),
+        uuid: playerUuid,
+        nftImageUrl: nftImageUrl
+      });
+
+      setupGameRoom(gameRoom);
+      setMenuOpen(false);
+      setMessage('Match found! Waiting for game to start...');
+
+    } catch (error) {
+      console.error('Error in quick match:', error);
+      setMessage('Failed to find a match. Please try again.');
+    }
+  };
+
+  // Setup game room event handlers
+  const setupGameRoom = (gameRoom) => {
+    setRoom(gameRoom);
+
+    gameRoom.onStateChange((state) => {
+      console.log('State changed:', state);
+      setGameState(state); // Store full game state
+      
+      // Identify current player and opponent
+      const currentPlayerSessionId = gameRoom.sessionId;
+      const allPlayerSessionIds = Array.from(state.players.keys());
+      const opponentSessionId = allPlayerSessionIds.find(id => id !== currentPlayerSessionId);
+      
+      // Set opponent info
+      if (opponentSessionId && state.players.get(opponentSessionId)) {
+        const opponentData = state.players.get(opponentSessionId);
+        setOpponent({
+          name: opponentData.name,
+          uuid: opponentData.uuid,
+          nftImageUrl: opponentData.nftImageUrl,
+          sessionId: opponentSessionId
+        });
       }
-
-      if (!gameRoom) {
-        throw lastError || new Error('All connection attempts failed');
+      
+      // Check if game should start
+      if (state.status === 'playing' && !gameStarted) {
+        setGameStarted(true);
+        setMessage('Game started! Make your choice.');
       }
-
-      setRoom(gameRoom);
-      setGameStarted(true);
-      setMessage('Opponent found! Make your choice.');
-
-      gameRoom.onStateChange((state) => {
-        console.log('State changed:', state);
-        setGameState(state); // Store full game state
-        
-        // Identify current player and opponent
-        const currentPlayerSessionId = gameRoom.sessionId;
-        const allPlayerSessionIds = Array.from(state.players.keys());
-        const opponentSessionId = allPlayerSessionIds.find(id => id !== currentPlayerSessionId);
-        
-        // Set opponent info
-        if (opponentSessionId && state.players.get(opponentSessionId)) {
-          const opponentData = state.players.get(opponentSessionId);
-          setOpponent({
-            name: opponentData.name,
-            uuid: opponentData.uuid,
-            nftImageUrl: opponentData.nftImageUrl,
-            sessionId: opponentSessionId
-          });
-        }
-        
-        // Determine which player is which for choice display
-        const isPlayer1 = allPlayerSessionIds[0] === currentPlayerSessionId;
-        
-        if (state.player1Choice && state.player2Choice) {
-          // Both players made a choice, show results for the round
-          setPlayerChoice(isPlayer1 ? state.player1Choice : state.player2Choice);
-          setOpponentChoice(isPlayer1 ? state.player2Choice : state.player1Choice);
-        } else if (state.player1Choice) {
-          if (isPlayer1) {
-            setPlayerChoice(state.player1Choice);
-            setOpponentChoice(null);
-          } else {
-            setPlayerChoice(null);
-            setOpponentChoice(state.player1Choice);
-          }
-        } else if (state.player2Choice) {
-          if (isPlayer1) {
-            setPlayerChoice(null);
-            setOpponentChoice(state.player2Choice);
-          } else {
-            setPlayerChoice(state.player2Choice);
-            setOpponentChoice(null);
-          }
+      
+      // Determine which player is which for choice display
+      const isPlayer1 = allPlayerSessionIds[0] === currentPlayerSessionId;
+      
+      if (state.player1Choice && state.player2Choice) {
+        // Both players made a choice, show results for the round
+        setPlayerChoice(isPlayer1 ? state.player1Choice : state.player2Choice);
+        setOpponentChoice(isPlayer1 ? state.player2Choice : state.player1Choice);
+      } else if (state.player1Choice) {
+        if (isPlayer1) {
+          setPlayerChoice(state.player1Choice);
+          setOpponentChoice(null);
         } else {
           setPlayerChoice(null);
+          setOpponentChoice(state.player1Choice);
+        }
+      } else if (state.player2Choice) {
+        if (isPlayer1) {
+          setPlayerChoice(null);
+          setOpponentChoice(state.player2Choice);
+        } else {
+          setPlayerChoice(state.player2Choice);
           setOpponentChoice(null);
         }
-
-        if (state.status === 'gameOver') {
-          setGameResult({ winner: state.winner });
-          setGameStarted(false);
-          setMessage(`${state.players.get(state.winner)?.name} wins the match!`);
-        }
-      });
-
-      gameRoom.onMessage('round_start', (message) => {
-        setMessage(message.message);
+      } else {
         setPlayerChoice(null);
         setOpponentChoice(null);
-      });
-
-      gameRoom.onMessage('round_end', (message) => {
-        setMessage(message.message);
-        // Update scores or other round-specific info if needed
-      });
-
-      gameRoom.onMessage('game_start', (message) => {
-        setMessage(message.message);
-      });
-
-      gameRoom.onMessage('game_over', (message) => {
-        setGameResult({ winner: message.winner });
-        setGameStarted(false);
-        setMessage(message.message);
-      });
-
-      gameRoom.onLeave(() => {
-        console.log('You left the room');
-        if (gameStarted) {
-          setMessage('Opponent disconnected. Returning to matchmaking...');
-          setGameStarted(false);
-          setGameResult({ winner: 'Opponent Disconnected' });
-        }
-      });
-
-    } catch (e) {
-      console.error('JOIN ERROR', e);
-      console.error('Error details:', {
-        message: e.message,
-        code: e.code,
-        name: e.name,
-        stack: e.stack
-      });
-
-      // Provide more specific error messages based on the error type
-      let errorMessage = 'Failed to join game: ';
-      if (e.message.includes('onAuth failed')) {
-        errorMessage += 'Authentication failed. The server may not be configured for authentication or the token format is incorrect.';
-      } else if (e.message.includes('rootSchema is not a constructor')) {
-        errorMessage += 'Server schema error. The game room may not be properly configured on the server side.';
-      } else if (e.message.includes('no available rooms')) {
-        errorMessage += 'No rooms available. Try again in a moment.';
-      } else if (e.message.includes('connection')) {
-        errorMessage += 'Connection failed. Please check if the game server is running.';
-      } else if (e.message.includes('room not found')) {
-        errorMessage += 'Room not found. The server may not have the drps_room configured.';
-      } else {
-        errorMessage += e.message;
       }
 
-      setMessage(errorMessage);
-      setWalletConnected(false); // Allow re-connecting wallet/retrying
-    }
+      if (state.status === 'gameOver') {
+        setGameResult({ winner: state.winner });
+        setGameStarted(false);
+        if (state.winner) {
+          setMessage(`${state.players.get(state.winner)?.name} wins the match!`);
+        } else {
+          setMessage(`It's a tie!`);
+        }
+      }
+    });
+
+    gameRoom.onMessage('round_start', (message) => {
+      setMessage(message.message);
+      setPlayerChoice(null);
+      setOpponentChoice(null);
+    });
+
+    gameRoom.onMessage('round_end', (message) => {
+      setMessage(message.message);
+      // Update scores or other round-specific info if needed
+    });
+
+    gameRoom.onMessage('game_start', (message) => {
+      setMessage(message.message);
+      setGameStarted(true);
+    });
+
+    gameRoom.onMessage('game_over', (message) => {
+      setGameResult({ winner: message.winner });
+      setGameStarted(false);
+      setMessage(message.message);
+    });
+
+    gameRoom.onLeave(() => {
+      console.log('You left the room');
+      if (gameStarted) {
+        setMessage('Opponent disconnected. Returning to menu...');
+        setGameStarted(false);
+        setGameResult({ winner: 'Opponent Disconnected' });
+      }
+    });
   };
 
   const makeChoice = (choice) => {
@@ -274,39 +284,153 @@ function App() {
     if (room) {
       room.leave(); // Leave current room
     }
+    // Reset all game state
     setPlayerChoice(null);
     setOpponentChoice(null);
     setGameResult(null);
     setGameStarted(false);
-    setOpponent(null); // Reset opponent info
-    setGameState(null); // Reset game state
-    setMessage('Returning to matchmaking...');
-    connectWallet(); // Re-initiate the full flow
+    setOpponent(null);
+    setGameState(null);
+    setMenuOpen(true); // Return to menu
+    setCurrentPlayer(null);
+    setRoomId('');
+    setMessage('Game ended. Ready for a new match!');
+  };
+
+  const returnToMenu = () => {
+    if (room) {
+      room.leave(); // Leave current room
+    }
+    // Reset all state
+    setPlayerChoice(null);
+    setOpponentChoice(null);
+    setGameResult(null);
+    setGameStarted(false);
+    setOpponent(null);
+    setGameState(null);
+    setMenuOpen(true);
+    setCurrentPlayer(null);
+    setRoomId('');
+    setMessage('Welcome! Create or join a room to start playing.');
   };
 
   return (
-    <div className="App">
-      {!walletConnected ? (
-        <Lobby onConnectWallet={connectWallet} />
-      ) : gameStarted ? (
-        <Game
-          playerChoice={playerChoice}
-          opponentChoice={opponentChoice}
-          onMakeChoice={makeChoice}
-          message={message}
-          currentPlayer={currentPlayer}
-          opponent={opponent}
-          gameState={gameState}
-        />
-      ) : (
-        <Result 
-          winner={gameResult?.winner} 
-          onRematch={rematch}
-          currentPlayer={currentPlayer}
-          opponent={opponent}
-          gameState={gameState}
-        />
-      )}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
+      <div className="container mx-auto max-w-4xl">
+        {menuOpen ? (
+          <Card className="mx-auto max-w-md shadow-2xl bg-white border-gray-200">
+            <CardHeader className="text-center bg-gradient-to-b from-gray-50 to-white rounded-t-lg">
+              <CardTitle className="text-3xl font-bold text-black mb-2">
+                Rock🪨 Paper📄 Scissors✂️
+              </CardTitle>
+              <CardDescription className="text-lg text-gray-600">
+                Challenge players worldwide in this classic game
+              </CardDescription>
+              {message && (
+                <Alert className="mt-4 bg-gray-50 border-gray-200">
+                  <AlertDescription className="text-gray-700">
+                    {message}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardHeader>
+            
+            <CardContent className="space-y-6 p-6">
+              {/* Player Name Input */}
+              <div className="space-y-2">
+                <Label htmlFor="playerName" className="text-sm font-medium text-gray-900">
+                  Player Name
+                </Label>
+                <Input
+                  id="playerName"
+                  type="text"
+                  placeholder="Enter your name"
+                  value={playerName}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  className="w-full border-gray-300 focus:border-black focus:ring-black bg-white"
+                />
+              </div>
+
+              {/* Quick Match Button */}
+              <Button
+                onClick={quickMatch}
+                className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 shadow-lg transition-all duration-200"
+                size="lg"
+              >
+                🎮 Quick Match
+              </Button>
+
+              <div className="flex items-center justify-center">
+                <Separator className="flex-1 bg-gray-300" />
+                <span className="px-3 text-sm text-gray-500">OR</span>
+                <Separator className="flex-1 bg-gray-300" />
+              </div>
+
+              {/* Create Room Section */}
+              <Button
+                onClick={createRoom}
+                variant="outline"
+                className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-semibold py-3 transition-all duration-200"
+                size="lg"
+              >
+                🏠 Create Private Room
+              </Button>
+
+              <div className="flex items-center justify-center">
+                <Separator className="flex-1 bg-gray-300" />
+                <span className="px-3 text-sm text-gray-500">OR</span>
+                <Separator className="flex-1 bg-gray-300" />
+              </div>
+
+              {/* Join Room Section */}
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="roomId" className="text-sm font-medium text-gray-900">
+                    Room ID
+                  </Label>
+                  <Input
+                    id="roomId"
+                    type="text"
+                    placeholder="Enter Room ID"
+                    value={roomId}
+                    onChange={(e) => setRoomId(e.target.value)}
+                    className="w-full border-gray-300 focus:border-black focus:ring-black bg-white"
+                  />
+                </div>
+                <Button
+                  onClick={joinRoom}
+                  variant="outline"
+                  className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-semibold py-3 transition-all duration-200"
+                  size="lg"
+                >
+                  🚪 Join Room
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : room && !gameResult ? (
+          <Game
+            playerChoice={playerChoice}
+            opponentChoice={opponentChoice}
+            onMakeChoice={makeChoice}
+            message={message}
+            currentPlayer={currentPlayer}
+            opponent={opponent}
+            gameState={gameState}
+            roomId={roomId}
+            onReturnToMenu={returnToMenu}
+          />
+        ) : (
+          <Result 
+            winner={gameResult?.winner} 
+            onRematch={rematch}
+            currentPlayer={currentPlayer}
+            opponent={opponent}
+            gameState={gameState}
+            onReturnToMenu={returnToMenu}
+          />
+        )}
+      </div>
     </div>
   );
 }
