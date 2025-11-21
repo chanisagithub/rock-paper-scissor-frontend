@@ -169,10 +169,10 @@
 .u-btn {
   transition: transform 180ms ease, box-shadow 180ms ease, background-color 160ms ease;
   backface-visibility: hidden;
-  will-change: transform;
 }
 
 .u-btn:hover:not(:disabled) {
+  will-change: transform;
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 10px 22px rgba(2,6,23,0.28);
 }
