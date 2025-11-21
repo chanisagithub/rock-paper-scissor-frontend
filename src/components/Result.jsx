@@ -7,6 +7,7 @@ import { Separator } from './ui/separator';
 import '../App.css';
 
 const Result = ({ winner, onRematch, currentPlayer, opponent, gameState, onReturnToMenu }) => {
+  // Determine if current player won, lost, or tied
   const istie = !winner || winner === null;
   const currentPlayerWon = !istie && winner && currentPlayer && (winner === currentPlayer.sessionId || 
     (gameState && gameState.players && gameState.players.get(winner)?.uuid === currentPlayer.uuid));
