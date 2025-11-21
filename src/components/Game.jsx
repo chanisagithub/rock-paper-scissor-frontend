@@ -27,24 +27,22 @@ const Game = ({ playerChoice, opponentChoice, onMakeChoice, message, currentPlay
       {/* Top Bar */}
       <div className="w-full max-w-4xl flex items-center justify-between mb-3 gap-3">
         {/* Room ID */}
-        <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm rounded-lg px-3 py-2">
-          {roomId && (
-            <>
-              <span className="text-white/80 text-sm">Room:</span>
-              <Badge className="bg-white text-black font-mono text-sm">
-                {roomId}
-              </Badge>
-              <Button
-                onClick={copyRoomId}
-                variant="ghost"
-                size="sm"
-                className="text-white/80 hover:text-white hover:bg-white/10 p-1 h-6 w-6 u-btn"
-              >
-                📋
-              </Button>
-            </>
-          )}
-        </div>
+        {roomId && (
+          <div className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm rounded-lg px-3 py-2">
+            <span className="text-white/80 text-sm">Room:</span>
+            <Badge className="bg-white text-black font-mono text-sm">
+              {roomId}
+            </Badge>
+            <Button
+              onClick={copyRoomId}
+              variant="ghost"
+              size="sm"
+              className="text-white/80 hover:text-white hover:bg-white/10 p-1 h-6 w-6 u-btn"
+            >
+              📋
+            </Button>
+          </div>
+        )}
 
         {/* Game Progress */}
         <div className="flex items-center space-x-3 bg-white/5 backdrop-blur-sm rounded-lg px-3 py-2">
