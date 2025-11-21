@@ -316,8 +316,8 @@ function App() {
 
   return (
     <div className="no-overflow min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
-      <div className="main-container w-full">
-        <div className="container mx-auto max-w-4xl">
+      <div className="container w-full mx-auto max-w-4xl flex items-center justify-center">
+        
           {menuOpen ? (
             <Card className="mx-auto max-w-md shadow-2xl bg-white border-gray-200">
               <CardHeader className="text-center bg-gradient-to-b from-gray-50 to-white rounded-t-lg">
