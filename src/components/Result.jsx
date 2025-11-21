@@ -4,9 +4,9 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Separator } from './ui/separator';
+import '../App.css';
 
 const Result = ({ winner, onRematch, currentPlayer, opponent, gameState, onReturnToMenu }) => {
-  // Determine if current player won, lost, or tied
   const istie = !winner || winner === null;
   const currentPlayerWon = !istie && winner && currentPlayer && (winner === currentPlayer.sessionId || 
     (gameState && gameState.players && gameState.players.get(winner)?.uuid === currentPlayer.uuid));
@@ -43,9 +43,9 @@ const Result = ({ winner, onRematch, currentPlayer, opponent, gameState, onRetur
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="no-overflow result-wrapper max-w-4xl mx-auto">
       {/* Game Over Header */}
-      <Card className={`${getResultColor()} border-2 shadow-lg`}>
+      <Card className={`${getResultColor()} border-2 shadow-lg w-full`}>
         <CardHeader className="text-center bg-gradient-to-b from-gray-50 to-white rounded-t-lg">
           <div className="text-6xl mb-4">{getResultIcon()}</div>
           <CardTitle className="text-3xl font-bold text-black mb-2">
@@ -64,23 +64,19 @@ const Result = ({ winner, onRematch, currentPlayer, opponent, gameState, onRetur
 
       {/* Final Score Display */}
       {gameState && (
-        <Card className="bg-white border-gray-200 shadow-lg">
+        <Card className="bg-white border-gray-200 shadow-lg w-full">
           <CardHeader className="text-center bg-gray-50 rounded-t-lg">
             <CardTitle className="text-xl text-black">Final Score</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="score-grid">
               {/* Current Player Result */}
-              <Card className={`border-2 shadow-md ${
-                istie ? 'border-gray-300' : (currentPlayerWon ? 'border-black' : 'border-gray-300')
-              }`}>
+              <Card className={`border-2 shadow-md ${istie ? 'border-gray-300' : (currentPlayerWon ? 'border-black' : 'border-gray-300')}`}>
                 <CardContent className="text-center pt-6 space-y-4">
                   <div className="text-lg font-semibold text-black">YOU</div>
                   {currentPlayer && (
                     <>
-                      <Avatar className={`w-24 h-24 mx-auto border-4 ${
-                        istie ? 'border-gray-400' : (currentPlayerWon ? 'border-black' : 'border-gray-300')
-                      }`}>
+                      <Avatar className={`w-24 h-24 mx-auto border-4 ${istie ? 'border-gray-400' : (currentPlayerWon ? 'border-black' : 'border-gray-300')}`}>
                         <AvatarImage src={currentPlayer.nftImageUrl} alt="Your Avatar" />
                         <AvatarFallback className="bg-gray-200 text-black text-xl font-bold">
                           {currentPlayer.name?.charAt(0)?.toUpperCase()}
@@ -88,9 +84,7 @@ const Result = ({ winner, onRematch, currentPlayer, opponent, gameState, onRetur
                       </Avatar>
                       <div>
                         <p className="font-bold text-black">{currentPlayer.name}</p>
-                        <Badge className={`text-xl px-4 py-2 mt-2 ${
-                          istie ? 'bg-gray-600' : (currentPlayerWon ? 'bg-black' : 'bg-gray-500')
-                        } text-white`}>
+                        <Badge className={`text-xl px-4 py-2 mt-2 ${istie ? 'bg-gray-600' : (currentPlayerWon ? 'bg-black' : 'bg-gray-500')} text-white`}>
                           {gameState.player1Score || 0} wins
                         </Badge>
                       </div>
@@ -113,16 +107,12 @@ const Result = ({ winner, onRematch, currentPlayer, opponent, gameState, onRetur
               </Card>
 
               {/* Opponent Result */}
-              <Card className={`border-2 shadow-md ${
-                istie ? 'border-gray-300' : (!currentPlayerWon ? 'border-black' : 'border-gray-300')
-              }`}>
+              <Card className={`border-2 shadow-md ${istie ? 'border-gray-300' : (!currentPlayerWon ? 'border-black' : 'border-gray-300')}`}>
                 <CardContent className="text-center pt-6 space-y-4">
                   <div className="text-lg font-semibold text-black">OPPONENT</div>
                   {opponent && (
                     <>
-                      <Avatar className={`w-24 h-24 mx-auto border-4 ${
-                        istie ? 'border-gray-400' : (!currentPlayerWon ? 'border-black' : 'border-gray-300')
-                      }`}>
+                      <Avatar className={`w-24 h-24 mx-auto border-4 ${istie ? 'border-gray-400' : (!currentPlayerWon ? 'border-black' : 'border-gray-300')}`}>
                         <AvatarImage src={opponent.nftImageUrl} alt="Opponent Avatar" />
                         <AvatarFallback className="bg-gray-200 text-black text-xl font-bold">
                           {opponent.name?.charAt(0)?.toUpperCase()}
@@ -130,9 +120,7 @@ const Result = ({ winner, onRematch, currentPlayer, opponent, gameState, onRetur
                       </Avatar>
                       <div>
                         <p className="font-bold text-black">{opponent.name}</p>
-                        <Badge className={`text-xl px-4 py-2 mt-2 ${
-                          istie ? 'bg-gray-600' : (!currentPlayerWon ? 'bg-black' : 'bg-gray-500')
-                        } text-white`}>
+                        <Badge className={`text-xl px-4 py-2 mt-2 ${istie ? 'bg-gray-600' : (!currentPlayerWon ? 'bg-black' : 'bg-gray-500')} text-white`}>
                           {gameState.player2Score || 0} wins
                         </Badge>
                       </div>
@@ -146,12 +134,12 @@ const Result = ({ winner, onRematch, currentPlayer, opponent, gameState, onRetur
       )}
 
       {/* Action Buttons */}
-      <Card className="bg-white border-gray-200 shadow-lg">
+      <Card className="bg-white border-gray-200 shadow-lg w-full">
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button 
               onClick={onRematch}
-              className="bg-black hover:bg-gray-800 text-white font-semibold px-8 py-3 text-lg shadow-lg transition-all duration-200"
+              className="bg-black hover:bg-gray-800 text-white font-semibold px-8 py-3 text-lg shadow-lg transition-all duration-200 u-btn"
               size="lg"
             >
               🔄 Play Again
@@ -160,7 +148,7 @@ const Result = ({ winner, onRematch, currentPlayer, opponent, gameState, onRetur
             <Button 
               onClick={onReturnToMenu}
               variant="outline"
-              className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-semibold px-8 py-3 text-lg transition-all duration-200"
+              className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-semibold px-8 py-3 text-lg transition-all duration-200 u-btn"
               size="lg"
             >
               ← Return to Menu
@@ -173,4 +161,3 @@ const Result = ({ winner, onRematch, currentPlayer, opponent, gameState, onRetur
 };
 
 export default Result;
-
