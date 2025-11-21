@@ -315,125 +315,126 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
-      <div className="container mx-auto max-w-4xl">
-        {menuOpen ? (
-          <Card className="mx-auto max-w-md shadow-2xl bg-white border-gray-200">
-            <CardHeader className="text-center bg-gradient-to-b from-gray-50 to-white rounded-t-lg">
-              <CardTitle className="text-3xl font-bold text-black mb-2">
-                Rock🪨 Paper📄 Scissors✂️
-              </CardTitle>
-              <CardDescription className="text-lg text-gray-600">
-                Challenge players worldwide in this classic game
-              </CardDescription>
-              {message && (
-                <Alert className="mt-4 bg-gray-50 border-gray-200">
-                  <AlertDescription className="text-gray-700">
-                    {message}
-                  </AlertDescription>
-                </Alert>
-              )}
-            </CardHeader>
-            
-            <CardContent className="space-y-6 p-6">
-              {/* Player Name Input */}
-              <div className="space-y-2">
-                <Label htmlFor="playerName" className="text-sm font-medium text-gray-900">
-                  Player Name
-                </Label>
-                <Input
-                  id="playerName"
-                  type="text"
-                  placeholder="Enter your name"
-                  value={playerName}
-                  onChange={(e) => setPlayerName(e.target.value)}
-                  className="w-full border-gray-300 focus:border-black focus:ring-black bg-white"
-                />
-              </div>
-
-              {/* Quick Match Button */}
-              <Button
-                onClick={quickMatch}
-                className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 shadow-lg transition-all duration-200"
-                size="lg"
-              >
-                🎮 Quick Match
-              </Button>
-
-              <div className="flex items-center justify-center">
-                <Separator className="flex-1 bg-gray-300" />
-                <span className="px-3 text-sm text-gray-500">OR</span>
-                <Separator className="flex-1 bg-gray-300" />
-              </div>
-
-              {/* Create Room Section */}
-              <Button
-                onClick={createRoom}
-                variant="outline"
-                className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-semibold py-3 transition-all duration-200"
-                size="lg"
-              >
-                🏠 Create Private Room
-              </Button>
-
-              <div className="flex items-center justify-center">
-                <Separator className="flex-1 bg-gray-300" />
-                <span className="px-3 text-sm text-gray-500">OR</span>
-                <Separator className="flex-1 bg-gray-300" />
-              </div>
-
-              {/* Join Room Section */}
-              <div className="space-y-3">
+    <div className="no-overflow min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
+      <div className="container w-full mx-auto max-w-4xl flex items-center justify-center">
+        
+          {menuOpen ? (
+            <Card className="mx-auto max-w-md shadow-2xl bg-white border-gray-200">
+              <CardHeader className="text-center bg-gradient-to-b from-gray-50 to-white rounded-t-lg">
+                <CardTitle className="text-3xl font-bold text-black mb-2">
+                  Rock🪨 Paper📄 Scissors✂️
+                </CardTitle>
+                <CardDescription className="text-lg text-gray-600">
+                  Challenge players worldwide in this classic game
+                </CardDescription>
+                {message && (
+                  <Alert className="mt-4 bg-gray-50 border-gray-200">
+                    <AlertDescription className="text-gray-700">
+                      {message}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardHeader>
+              
+              <CardContent className="space-y-6 p-6">
+                {/* Player Name Input */}
                 <div className="space-y-2">
-                  <Label htmlFor="roomId" className="text-sm font-medium text-gray-900">
-                    Room ID
+                  <Label htmlFor="playerName" className="text-sm font-medium text-gray-900">
+                    Player Name
                   </Label>
                   <Input
-                    id="roomId"
+                    id="playerName"
                     type="text"
-                    placeholder="Enter Room ID"
-                    value={roomId}
-                    onChange={(e) => setRoomId(e.target.value)}
+                    placeholder="Enter your name"
+                    value={playerName}
+                    onChange={(e) => setPlayerName(e.target.value)}
                     className="w-full border-gray-300 focus:border-black focus:ring-black bg-white"
                   />
                 </div>
+
+                {/* Quick Match Button */}
                 <Button
-                  onClick={joinRoom}
-                  variant="outline"
-                  className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-semibold py-3 transition-all duration-200"
+                  onClick={quickMatch}
+                  className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 shadow-lg transition-all duration-200 u-btn"
                   size="lg"
                 >
-                  🚪 Join Room
+                  🎮 Quick Match
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : room && !gameResult ? (
-          <Game
-            playerChoice={playerChoice}
-            opponentChoice={opponentChoice}
-            onMakeChoice={makeChoice}
-            message={message}
-            currentPlayer={currentPlayer}
-            opponent={opponent}
-            gameState={gameState}
-            roomId={roomId}
-            onReturnToMenu={returnToMenu}
-          />
-        ) : (
-          <Result 
-            winner={gameResult?.winner} 
-            onRematch={rematch}
-            currentPlayer={currentPlayer}
-            opponent={opponent}
-            gameState={gameState}
-            onReturnToMenu={returnToMenu}
-          />
-        )}
+
+                <div className="flex items-center justify-center">
+                  <Separator className="flex-1 bg-gray-300" />
+                  <span className="px-3 text-sm text-gray-500">OR</span>
+                  <Separator className="flex-1 bg-gray-300" />
+                </div>
+
+                {/* Create Room Section */}
+                <Button
+                  onClick={createRoom}
+                  variant="outline"
+                  className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-semibold py-3 transition-all duration-200 u-btn"
+                  size="lg"
+                >
+                  🏠 Create Private Room
+                </Button>
+
+                <div className="flex items-center justify-center">
+                  <Separator className="flex-1 bg-gray-300" />
+                  <span className="px-3 text-sm text-gray-500">OR</span>
+                  <Separator className="flex-1 bg-gray-300" />
+                </div>
+
+                {/* Join Room Section */}
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="roomId" className="text-sm font-medium text-gray-900">
+                      Room ID
+                    </Label>
+                    <Input
+                      id="roomId"
+                      type="text"
+                      placeholder="Enter Room ID"
+                      value={roomId}
+                      onChange={(e) => setRoomId(e.target.value)}
+                      className="w-full border-gray-300 focus:border-black focus:ring-black bg-white"
+                    />
+                  </div>
+                  <Button
+                    onClick={joinRoom}
+                    variant="outline"
+                    className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-semibold py-3 transition-all duration-200 u-btn"
+                    size="lg"
+                  >
+                    🚪 Join Room
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : room && !gameResult ? (
+            <Game
+              playerChoice={playerChoice}
+              opponentChoice={opponentChoice}
+              onMakeChoice={makeChoice}
+              message={message}
+              currentPlayer={currentPlayer}
+              opponent={opponent}
+              gameState={gameState}
+              roomId={roomId}
+              onReturnToMenu={returnToMenu}
+            />
+          ) : (
+            <Result 
+              winner={gameResult?.winner} 
+              onRematch={rematch}
+              currentPlayer={currentPlayer}
+              opponent={opponent}
+              gameState={gameState}
+              onReturnToMenu={returnToMenu}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
 export default App;
-
